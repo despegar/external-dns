@@ -432,21 +432,21 @@ func (sc *serviceSource) generateEndpoints(svc *v1.Service, hostname string, pro
 	switch svc.Spec.Type {
 	case v1.ServiceTypeLoadBalancer:
 		targets = append(targets, extractLoadBalancerTargets(svc)...)
-	case v1.ServiceTypeClusterIP:
+	case v1.ServiceTypeClusterIP, v1.ServiceTypeNodePort:
 		if sc.publishInternal {
 			targets = append(targets, extractServiceIps(svc)...)
 		}
 		if svc.Spec.ClusterIP == v1.ClusterIPNone {
 			endpoints = append(endpoints, sc.extractHeadlessEndpoints(svc, hostname, ttl)...)
 		}
-	case v1.ServiceTypeNodePort:
-		// add the nodeTargets and extract an SRV endpoint
-		targets, err = sc.extractNodePortTargets(svc)
-		if err != nil {
-			log.Errorf("Unable to extract targets from service %s/%s error: %v", svc.Namespace, svc.Name, err)
-			return endpoints
-		}
-		endpoints = append(endpoints, sc.extractNodePortEndpoints(svc, targets, hostname, ttl)...)
+	// case v1.ServiceTypeNodePort:
+	//	// add the nodeTargets and extract an SRV endpoint
+	//	targets, err = sc.extractNodePortTargets(svc)
+	//	if err != nil {
+	//		log.Errorf("Unable to extract targets from service %s/%s error: %v", svc.Namespace, svc.Name, err)
+	//		return endpoints
+	//	}
+	//	endpoints = append(endpoints, sc.extractNodePortEndpoints(svc, targets, hostname, ttl)...)
 	case v1.ServiceTypeExternalName:
 		targets = append(targets, extractServiceExternalName(svc)...)
 	}
